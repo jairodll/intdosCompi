@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html">
+<h:head>
+    <title>Pagina JSF</title>
+</h:head>
+<h:body>
+    <!-- Aquí colocarías el contenido de la página -->
+    <h:form>
+        <h:inputText value="#{ventana.datos}" />
+        <h:commandButton value="Compilar" action="#{ventana.compilar}" />
+        <h:outputText value="#{ventana.resultado}" />
+    </h:form>
+</h:body>
+</html>

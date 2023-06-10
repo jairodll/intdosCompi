@@ -1,0 +1,146 @@
+/*--------------- 1ra Area: Codigo de Usuario -----------------------*/
+//-------> importaciones, paquetes
+package Analizadores;
+import java_cup.runtime.Symbol;
+import java.util.LinkedList;
+
+//------> Codigo para el parser, variables, métodos
+parser code
+{
+    public String resultado = "";
+    public static LinkedList<TError> TablaES = new LinkedList<TError>();
+
+    // Método al que se llama automáticamente ante algún error sintáctico
+    public void syntax_error(Symbol s)
+    {
+        String lexema = s.value.toString();
+        int fila = s.right;
+        int columna = s.left;
+
+        System.out.println("!!!!!!! Error Sintáctico Recuperado !!!!!!!");
+        System.out.println("\t\tLexema: " + lexema);
+        System.out.println("\t\tFila: " + fila);
+        System.out.println("\t\tColumna: " + columna);
+
+        TError datos = new TError(lexema, fila, columna, "Error Sintáctico", "Caracter no esperado");
+        TablaES.add(datos);
+    }
+
+    // Método al que se llama en el momento en que ya no es posible una recuperación de errores
+    public void unrecovered_syntax_error(Symbol s) throws java.lang.Exception
+    {
+        String lexema = s.value.toString();
+        int fila = s.right;
+        int columna = s.left;
+
+        System.out.println("!!!!!!! Error Sintáctico, Panic Mode !!!!!!!");
+        System.out.println("\t\tLexema: " + lexema);
+        System.out.println("\t\tFila: " + fila);
+        System.out.println("\t\tColumna: " + columna);
+
+        TError datos = new TError(lexema, fila, columna, "Error Sintáctico", "Caracter no esperado");
+        TablaES.add(datos);
+    }
+}
+
+/*--------------- 2da Area: Declaraciones -----------------------*/
+//------> Declaración de terminales
+terminal mas, menos, por, div, num, para, parc, PUNTO_Y_COMA, SUMA, RESTA, MULTIPLICACION, DIVISION, PARENTESIS_ABRE, PARENTESIS_CIERRA, NUMERO,
+    PUNTO, MENOR_QUE, IGUAL, MAYOR_QUE, POTENCIA, DIFERENTE, MENOR_O_IGUAL, MAYOR_O_IGUAL, DO_, IF,
+    FOR, INT, OUT, ELSE, LONG, FLOAT, PRINT, IN, SHORT, WHILE, STRING, SYSTEM, DOUBLE, BOOLEAN,
+    PRINTLN, NUM_ENTERO, NUM_FLOAT, NUM_DOUBLE, PUBLIC, STATIC, VOID, ARGS, PRIVATE, RETURN, PALABRA, UNARY_MINUS, LLAVE_ABRE, LLAVE_CIERRA,
+    NEXT, NEXT_INT, NEXT_FLOAT, NEXT_DOUBLE, COMILLAS, TRUE, FALSE, CORCHETE_ABRE, CORCHETE_CIERRA, NEGACION, CORCHETE_ABRE2D, CORCHETE_CIERRA2D,
+    MAIN, COMA, AND, OR, CASE, BREAK, SWITCH, DEFAULT, NEXT_BOOLEAN, DOS_PUNTOS, CLASS, SCANNER, NEW, NEXT_LINE, NEXT_BYTE, NEXT_LONG, NEXT_SHORT;
+
+//------> Declaración de no terminales
+non terminal INICIO, E, expr, Declaracion, METODO_MAIN, EstructuraSelectiva, EstructuraRepetitiva,
+    ImpresionMensajes, RetornoDatos, LecturaDatos, Parametros, dentroWitch, CLASS_INICIO, ELEMENTOS, METODO, TIPO_DATOS, ELEMENTOS_MAIN, ELEMENTOS_SIN_MAIN,
+    expr_prima, Scaneo;
+
+//----> Precedencia de menor a mayor
+precedence left SUMA, RESTA;
+precedence left MULTIPLICACION, DIVISION;
+precedence left POTENCIA;
+precedence left AND;
+precedence left OR;
+
+start with CLASS_INICIO;
+
+/*--------------- 3ra Area: Reglas Semánticas -----------------------*/
+INICIO ::= E
+
+CLASS_INICIO ::= "class" PALABRA DOS_PUNTOS ELEMENTOS
+
+ELEMENTOS ::= METODO_MAIN | Declaracion | EstructuraSelectiva | METODO
+
+METODO_MAIN ::= "def" "main" PARENTESIS_ABRE ARGS PARENTESIS_CIERRA DOS_PUNTOS ELEMENTOS_MAIN
+
+ELEMENTOS_MAIN ::= Declaracion | EstructuraSelectiva
+
+ELEMENTOS_SIN_MAIN ::= Declaracion | EstructuraSelectiva | METODO | expr
+
+Declaracion ::= TIPO_DATOS PALABRA expr
+                | TIPO_DATOS CORCHETE_ABRE CORCHETE_CIERRA PALABRA expr
+                | TIPO_DATOS CORCHETE_ABRE CORCHETE_CIERRA CORCHETE_ABRE CORCHETE_CIERRA PALABRA expr
+
+TIPO_DATOS ::= "float" | "double" | "int" | "long" | "short" | "str" | "bool" | "void" | "static"
+
+METODO ::= "def" TIPO_DATOS PALABRA PARENTESIS_ABRE Parametros PARENTESIS_CIERRA DOS_PUNTOS expr
+
+Parametros ::= Declaracion [COMA Parametros]
+
+RetornoDatos ::= "return" expr PUNTO_Y_COMA
+
+expr ::= PARENTESIS_ABRE expr PARENTESIS_CIERRA expr_prima
+       | RESTA expr %prec UNARY_MINUS
+       | Declaracion expr
+       | EstructuraSelectiva expr
+       | EstructuraRepetitiva expr
+       | LecturaDatos expr
+       | ImpresionMensajes expr
+       | METODO expr
+       | RetornoDatos
+       | NUMERO
+       | NUM_ENTERO
+       | NUM_DOUBLE
+       | NUM_FLOAT
+       | PALABRA
+       | NEGACION expr
+       | TRUE
+       | FALSE
+       | PUNTO_Y_COMA
+       | Scaneo
+
+expr_prima ::= expr SUMA expr
+              | expr RESTA expr
+              | expr MULTIPLICACION expr
+              | expr DIVISION expr
+              | expr POTENCIA expr
+              | expr MENOR_QUE expr
+              | expr IGUAL expr
+              | expr MAYOR_QUE expr
+              | expr MENOR_O_IGUAL expr
+              | expr MAYOR_O_IGUAL expr
+              | expr DIFERENTE expr
+              | expr AND expr
+              | expr OR expr
+
+EstructuraSelectiva ::= IF PARENTESIS_ABRE expr PARENTESIS_CIERRA DOS_PUNTOS expr ["else" DOS_PUNTOS expr]
+
+EstructuraRepetitiva ::= FOR PARENTESIS_ABRE expr PUNTO_Y_COMA expr PUNTO_Y_COMA expr PARENTESIS_CIERRA DOS_PUNTOS expr
+
+LecturaDatos ::= IN PARENTESIS_ABRE PARENTESIS_CIERRA
+
+ImpresionMensajes ::= OUT PARENTESIS_ABRE expr PARENTESIS_CIERRA
+
+Scaneo ::= SCANNER PUNTO NEXT PARENTESIS_ABRE PARENTESIS_CIERRA
+
+IF ::= "if"
+
+FOR ::= "for"
+
+IN ::= "in"
+
+OUT ::= "out"
+
+SCANNER ::= "Scanner"
